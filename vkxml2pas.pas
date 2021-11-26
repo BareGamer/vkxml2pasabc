@@ -22,7 +22,7 @@
  *                                                                            *
  ******************************************************************************)
 program vkxml2pas;        //this is done with pascalabc and stanford pascal in mind as it requires certain workarounds 
-{$ifdef fpc}               
+{$if defined(fpc)}
  {$mode delphi}
  {$ifdef cpui386}
   {$define cpu386}
@@ -147,10 +147,10 @@ const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef
 {$endif}
       const CommentPadding=80;
 
-{$ifdef fpc}
+{$if defined(fpc)}
  {$undef OldDelphi}
 {$elseif not defined(pascalabc)}
- {$ifdef conditionalexpressions}
+ {$if defined(conditionalexpressions)}
   {$if CompilerVersion>=23.0}
    {$undef OldDelphi}
 type qword=uint64;
@@ -363,7 +363,7 @@ type PEngineListClasses=^TXMLClasses;
        procedure DumpList;
        procedure AppendTo(DestStringTree:TXMLStringTree);
        procedure Optimize(DestStringTree:TXMLStringTree);
-       function Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean:=false):boolean;
+       function Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean{$ifdef pascalabc}:{$endif}=false):boolean;
        function Delete(Content:ansistring):boolean;
        function Find(Content:ansistring;var Data:TXMLStringTreeData):boolean;
        function FindEx(Content:ansistring;var Data:TXMLStringTreeData;var Len:longint):boolean;
@@ -437,7 +437,7 @@ type PEngineListClasses=^TXMLClasses;
        procedure Clear; override;
        procedure Assign(From:TXMLItem); override;
        function FindParameter(ParameterName:ansistring):TXMLParameter;
-       function GetParameter(ParameterName:ansistring;bydefault:ansistring:=''):ansistring;  //default is reserved in pascalabc, replaced with bydefault
+       function GetParameter(ParameterName:ansistring;bydefault:ansistring{$ifdef pascalabc}:{$endif}=''):ansistring;  //default is reserved in pascalabc, replaced with bydefault
        function AddParameter(AParameter:TXMLParameter):boolean; overload;
        function AddParameter(Name:ansistring;Value:TXMLString):boolean; overload;
        function RemoveParameter(AParameter:TXMLParameter):boolean; overload;
@@ -501,11 +501,11 @@ type PEngineListClasses=^TXMLClasses;
        procedure Assign(From:TXML);
        function Parse(Stream:TStream):boolean;
        function Read(Stream:TStream):boolean;
-       function Write(Stream:TStream;IdentSize:longint:=2):boolean;
+       function Write(Stream:TStream;IdentSize:longint{$ifdef pascalabc}:{$endif}=2):boolean;
        property Text:ansistring read ReadXMLText write WriteXMLText;
      end;
 
-function NextPowerOfTwo(Value:longint;const MinThreshold:longint:=0):longint;
+function NextPowerOfTwo(Value:longint;const MinThreshold:longint{$ifdef pascalabc}:{$endif}=0):longint;
 begin
  result:=(Value or MinThreshold)-1;
  result:=result or (result shr 1);
@@ -581,7 +581,7 @@ begin
  EntityInitialized:=false;
 end;
 
-function ConvertToEntities(AString:TXMLString;IdentLevel:longint:=0):ansistring;
+function ConvertToEntities(AString:TXMLString;IdentLevel:longint{$ifdef pascalabc}:{$endif}=0):ansistring;
 var Counter,IdentCounter:longint;
     c:TXMLChar;
 begin
@@ -1224,7 +1224,7 @@ begin
  end;
 end;
 
-function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean:=false):boolean;
+function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean{$ifdef pascalabc}:{$endif}=false):boolean;
 var StringLength,Position,PositionCounter:longint;
     NewNode,LastNode,Node:PXMLStringTreeNode;
     StringChar,NodeChar:ansichar;
@@ -1635,7 +1635,7 @@ begin
  result:=nil;
 end;
 
-function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring:=''):ansistring;
+function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring{$ifdef pascalabc}:{$endif}=''):ansistring;
 var i:longint;
 begin
  for i:=0 to length(Parameter)-1 do begin
@@ -2540,7 +2540,7 @@ begin
  result:=Parse(Stream);
 end;
 
-function TXML.Write(Stream:TStream;IdentSize:longint:=2):boolean;
+function TXML.Write(Stream:TStream;IdentSize:longint{$ifdef pascalabc}:{$endif}=2):boolean;
 var IdentLevel:longint;
     Errors:boolean;
  procedure Process(Item:TXMLItem;DoIndent:boolean);
@@ -2906,7 +2906,7 @@ var Comment:ansistring;
     AllCommandClassDefinitions:TStringList;
     AllCommandClassImplementations:TStringList;
 
-function TranslateType(Type_:ansistring;const Ptr:longint:=0):ansistring;
+function TranslateType(Type_:ansistring;const Ptr:longint{$ifdef pascalabc}:{$endif}=0):ansistring;
 begin
  case Ptr of
   1:begin
