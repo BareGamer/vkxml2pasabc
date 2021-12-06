@@ -21,7 +21,7 @@
  * 3. This notice may not be removed or altered from any source distribution. *
  *                                                                            *
  ******************************************************************************)
-program vkxml2pas;        //this is done with pascalabc and stanford pascal in mind as it requires certain workarounds 
+program vkxml2pas;        //this is done with pascalabc in mind as it requires certain workarounds
 {$if defined(fpc)}
  {$mode delphi}
  {$ifdef cpui386}
@@ -60,7 +60,7 @@ program vkxml2pas;        //this is done with pascalabc and stanford pascal in m
  {$else}
   {$undef HAS_TYPE_SINGLE}
  {$endif}
-{$elseif CompilerVersion>=15}
+{$elseif CompilerVersion>=15.0}
  {$realcompatibility off}
  {$localsymbols on}
  {$define little_endian}
@@ -120,7 +120,7 @@ program vkxml2pas;        //this is done with pascalabc and stanford pascal in m
   {$define CAN_INLINE}
  {$else}
   {$ifdef conditionalexpressions}
-   {$if compilerversion>=18}
+   {$if CompilerVersion>=18.0}
     {$define CAN_INLINE}
    {$ifend}
   {$endif}
@@ -136,7 +136,7 @@ program vkxml2pas;        //this is done with pascalabc and stanford pascal in m
 {$endif}
 {$undef UNICODE}
 
-//pascalabc and possibly stanford pascal don't need this part
+//pascalabc doesn't need this part
 {$ifndef pascalabc}
 uses SysUtils,Classes,Contnrs;
 
@@ -207,17 +207,17 @@ begin
   result:=#0;
  end else begin
   if CharValue<=$7f then begin
-   Data[0]:=ansichar(byte(CharValue));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte(CharValue));
    ResultLen:=1;
   end else if CharValue<=$7ff then begin
-   Data[0]:=ansichar(byte($c0 or ((CharValue shr 6) and $1f)));
-   Data[1]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($c0 or ((CharValue shr 6) and $1f)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=2;
 {$ifdef strictutf8}
   end else if CharValue<=$d7ff then begin
-   Data[0]:=ansichar(byte($e0 or ((CharValue shr 12) and $0f)));
-   Data[1]:=ansichar(byte($80 or ((CharValue shr 6) and $3f)));
-   Data[2]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($e0 or ((CharValue shr 12) and $0f)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 6) and $3f)));
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=3;
   end else if CharValue<=$dfff then begin
    Data[0]:=#$ef; // $fffd
@@ -226,38 +226,38 @@ begin
    ResultLen:=3;
 {$endif}
   end else if CharValue<=$ffff then begin
-   Data[0]:=ansichar(byte($e0 or ((CharValue shr 12) and $0f)));
-   Data[1]:=ansichar(byte($80 or ((CharValue shr 6) and $3f)));
-   Data[2]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($e0 or ((CharValue shr 12) and $0f)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 6) and $3f)));
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=3;
   end else if CharValue<=$1fffff then begin
-   Data[0]:=ansichar(byte($f0 or ((CharValue shr 18) and $07)));
-   Data[1]:=ansichar(byte($80 or ((CharValue shr 12) and $3f)));
-   Data[2]:=ansichar(byte($80 or ((CharValue shr 6) and $3f)));
-   Data[3]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($f0 or ((CharValue shr 18) and $07)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 12) and $3f)));
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 6) and $3f)));
+   Data[3]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=4;
 {$ifndef strictutf8}
   end else if CharValue<=$3ffffff then begin
-   Data[0]:=ansichar(byte($f8 or ((CharValue shr 24) and $03)));
-   Data[1]:=ansichar(byte($80 or ((CharValue shr 18) and $3f)));
-   Data[2]:=ansichar(byte($80 or ((CharValue shr 12) and $3f)));
-   Data[3]:=ansichar(byte($80 or ((CharValue shr 6) and $3f)));
-   Data[4]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($f8 or ((CharValue shr 24) and $03)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 18) and $3f)));
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 12) and $3f)));
+   Data[3]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 6) and $3f)));
+   Data[4]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=5;
   end else if CharValue<=$7fffffff then begin
-   Data[0]:=ansichar(byte($fc or ((CharValue shr 30) and $01)));
-   Data[1]:=ansichar(byte($80 or ((CharValue shr 24) and $3f)));
-   Data[2]:=ansichar(byte($80 or ((CharValue shr 18) and $3f)));
-   Data[3]:=ansichar(byte($80 or ((CharValue shr 12) and $3f)));
-   Data[4]:=ansichar(byte($80 or ((CharValue shr 6) and $3f)));
-   Data[5]:=ansichar(byte($80 or (CharValue and $3f)));
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($fc or ((CharValue shr 30) and $01)));
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 24) and $3f)));
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 18) and $3f)));
+   Data[3]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 12) and $3f)));
+   Data[4]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or ((CharValue shr 6) and $3f)));
+   Data[5]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}(byte($80 or (CharValue and $3f)));
    ResultLen:=6;
 {$endif}
   end else begin
    //that part looked identical to another at the top of the function but the block bellow decided not to compile in pabc so it got changed: 
-   Data[0]:={$ifndef pascalabc}ansichar($ef){$else}chransi($ef){$endif}; // $fffd
-   Data[1]:={$ifndef pascalabc}ansichar($bf){$else}chransi($bf){$endif};
-   Data[2]:={$ifndef pascalabc}ansichar($bd){$else}chransi($bd){$endif};
+   Data[0]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}($ef); // $fffd
+   Data[1]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}($bf);
+   Data[2]:={$ifndef pascalabc}ansichar{$else}chransi{$endif}($bd);
    ResultLen:=3;
   end;
   SetString(result,pansichar(@Data[0]),ResultLen);
@@ -3438,6 +3438,7 @@ type PTypeDefinitionKind=^TTypeDefinitionKind;
      TTypeDefinitionMembers=array of TTypeDefinitionMember;
      PTypeDefinition=^TTypeDefinition;
      TTypeDefinition=record
+      {$if defined(pascalabc)}
       Kind:(tdkUNKNOWN,tdkSTRUCT,tdkUNION,tdkFUNCPOINTER,tdkALIAS);  //"nested records can't use names fron non-global contexts"  (pascalabc)
       Name:ansistring;
       Comment:ansistring;
@@ -3460,6 +3461,19 @@ type PTypeDefinitionKind=^TTypeDefinitionKind;
       Ptr:longint;
       ValidityStringList:TStringList;
      end;
+      {$else}
+      Kind:TTypeDefinitionKind;
+      Name:ansistring;
+      Comment:ansistring;
+      Members:TTypeDefinitionMembers;
+      CountMembers:longint;
+      Define:ansistring;
+      Type_:ansistring;
+      Alias:ansistring;
+      Ptr:longint;
+      ValidityStringList:TStringList;
+     end;
+      {$endif}
      TTypeDefinitions=array of TTypeDefinition;
      TPTypeDefinitions=array of PTypeDefinition;
 var i,j,k,ArraySize,CountTypeDefinitions,VersionVariant,VersionMajor,VersionMinor,VersionPatch:longint;
@@ -4946,14 +4960,14 @@ begin
    OutputPAS.Add('**');
    OutputPAS.Add('*)');
    OutputPAS.Add('unit Vulkan;');
-   OutputPAS.Add('{$ifdef fpc}');
+   OutputPAS.Add('{$if defined(fpc)}');
    OutputPAS.Add(' {$mode delphi}');
    OutputPAS.Add(' {$z4}');
    OutputPAS.Add(' {$packrecords c}');
    OutputPAS.Add(' {$define CAN_INLINE}');
    OutputPAS.Add(' {$define HAS_ADVANCED_RECORDS}');
    OutputPAS.Add(' {$notes off}');
-   OutputPAS.Add('{$else}');
+   OutputPAS.Add('{$elseif CompilerVersion>=15.0}');
    OutputPAS.Add(' {$z4}');
    OutputPAS.Add(' {$undef CAN_INLINE}');
    OutputPAS.Add(' {$undef HAS_ADVANCED_RECORDS}');
@@ -4966,6 +4980,8 @@ begin
    OutputPAS.Add('   {$define HAS_ADVANCED_RECORDS}');
    OutputPAS.Add('  {$ifend}');
    OutputPAS.Add(' {$endif}');
+   OutputPAS.Add('{$else}');
+   OutputPAS.Add(' {$define pascalabc}');
    OutputPAS.Add('{$endif}');
    OutputPAS.Add('{$ifdef Win32}');
    OutputPAS.Add(' {$define Windows}');
@@ -4996,6 +5012,7 @@ begin
    OutputPAS.Add('');
    OutputPAS.Add('interface');
    OutputPAS.Add('');
+   OutputPAS.Add('{$ifndef pascalabc}');
    OutputPAS.Add('uses {$if defined(Windows)}');
    OutputPAS.Add('      Windows,');
    OutputPAS.Add('     {$elseif defined(Unix)}');
@@ -5009,8 +5026,9 @@ begin
    OutputPAS.Add('     {$if defined(DirectFB) and defined(VulkanUseDirectFBUnits)}DirectFB,{$ifend}');
    OutputPAS.Add('     {$if defined(QNX) and defined(VulkanUseQNXUnits)}QNX,{$ifend}');
    OutputPAS.Add('     SysUtils;');
+   OutputPAS.Add('{$endif}');
    OutputPAS.Add('');
-   OutputPAS.Add('const VK_DEFAULT_LIB_NAME={$ifdef Windows}''vulkan-1.dll''{$else}{$ifdef Android}''libvulkan.so''{$else}{$ifdef Unix}''libvulkan.so.1''{$else}''libvulkan''{$endif}{$endif}{$endif};');
+   OutputPAS.Add('const VK_DEFAULT_LIB_NAME={$if defined(Windows) or defined(pascalabc)}''vulkan-1.dll''{$else}{$ifdef Android}''libvulkan.so''{$else}{$ifdef Unix}''libvulkan.so.1''{$else}''libvulkan''{$endif}{$endif}{$endif};');
    OutputPAS.Add('');
    OutputPAS.Add('type PPVkInt8=^PVkInt8;');
    OutputPAS.Add('     PVkInt8=^TVkInt8;');
