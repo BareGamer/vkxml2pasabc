@@ -22,7 +22,7 @@
  *                                                                            *
  ******************************************************************************)
 program vkxml2pas;        //this is done with pascalabc in mind as it requires certain workarounds
-{$ifdefifpc}
+{$ifdef fpc}
  {$mode delphi}
  {$ifdef cpui386}
   {$define cpu386}
