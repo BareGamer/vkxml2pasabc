@@ -22,7 +22,7 @@
  *                                                                            *
  ******************************************************************************)
 program vkxml2pas;        //this is done with pascalabc in mind as it requires certain workarounds
-{$if defined(fpc)}
+{$ifdefifpc}
  {$mode delphi}
  {$ifdef cpui386}
   {$define cpu386}
@@ -60,21 +60,23 @@ program vkxml2pas;        //this is done with pascalabc in mind as it requires c
  {$else}
   {$undef HAS_TYPE_SINGLE}
  {$endif}
-{$elseif CompilerVersion>=15.0}
- {$realcompatibility off}
- {$localsymbols on}
- {$define little_endian}
- {$ifndef cpu64}
-  {$define cpu32}
- {$endif}
- {$define delphi} 
- {$undef HasSAR}
- {$define UseDIV}
- {$define HAS_TYPE_EXTENDED}
- {$define HAS_TYPE_DOUBLE}
- {$define HAS_TYPE_SINGLE}
 {$else}
- {$define pascalabc}
+ {$if CompilerVersion>=15.0}
+  {$realcompatibility off}
+  {$localsymbols on}
+  {$define little_endian}
+  {$ifndef cpu64}
+   {$define cpu32}
+  {$endif}
+  {$define delphi}
+  {$undef HasSAR}
+  {$define UseDIV}
+  {$define HAS_TYPE_EXTENDED}
+  {$define HAS_TYPE_DOUBLE}
+  {$define HAS_TYPE_SINGLE}
+ {$else}
+  {$define pascalabc}
+ {$endif}
 {$endif}
 {$ifdef cpu386}
  {$define cpux86}
@@ -114,15 +116,17 @@ program vkxml2pas;        //this is done with pascalabc in mind as it requires c
 {$endif}
 {$ifdef fpc}
  {$define CAN_INLINE}
-{$else ifndef pascalabc}
- {$undef CAN_INLINE}
- {$ifdef ver180}
-  {$define CAN_INLINE}
- {$else}
-  {$ifdef conditionalexpressions}
-   {$if CompilerVersion>=18.0}
-    {$define CAN_INLINE}
-   {$ifend}
+{$else}
+ {$ifndef pascalabc}
+  {$undef CAN_INLINE}
+  {$ifdef ver180}
+   {$define CAN_INLINE}
+  {$else}
+   {$ifdef conditionalexpressions}
+    {$if CompilerVersion>=18.0}
+     {$define CAN_INLINE}
+    {$ifend}
+   {$endif}
   {$endif}
  {$endif}
 {$endif}
