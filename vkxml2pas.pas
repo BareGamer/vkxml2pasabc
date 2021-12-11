@@ -148,13 +148,11 @@ uses SysUtils,Classes,Contnrs;
 // On Android/ARMv7a, Vulkan functions use the armeabi-v7a-hard calling convention, even if the application's native code is compiled with the armeabi-v7a calling convention.
 // On other platforms, use the default calling convention
 const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef cpuarm}hardfloat;{$else}cdecl;{$endif}{$else}cdecl;{$endif}{$endif}';
+{$else}
+uses vkxml2pasutilsabc; //reimplementation of some utility functions such as assign or some classes
 {$endif}
-      const CommentPadding=80;
 
-{$ifdef pascalabc}//doesn't compile the type below without that
-type NativeUInt=longword;
-     NativeInt=longint;
-{$endif}
+      const CommentPadding=80;
 
 {$if defined(fpc)}
  {$undef OldDelphi}
@@ -163,7 +161,7 @@ type NativeUInt=longword;
   {$if CompilerVersion>=23.0}
    {$undef OldDelphi}
 type qword=uint64;
-     ptruint=NativeUInt;
+     ptruint=vkxml2pasutilsabc.NativeUInt;
      ptrint=NativeInt;
   {$elseif}
    {$define OldDelphi}
@@ -182,28 +180,6 @@ type qword=int64;
      ptruint=longword;
      ptrint=longint;
 {$endif}
-{$endif}
-
-{$ifdef pascalabc}
- type ansistring=string;
- type ansichar=char;
- type pansichar=^ansichar;
-
-procedure SetString(var s:string;buffer:pchar;length:integer);
-begin
-  if buffer<>nil then
-  begin
-    var s1:string:=new string(buffer,0,length);
-    s:=s1;
-    //var ps:pointer:=@s;
-    //ps:=@s1;
-  end;
-end;
-
-function Assigned(p:pointer):boolean;
-begin
-  result:=p<>nil;
-end;
 {$endif}
 
 function UTF32CharToUTF8(CharValue:longword):ansistring;
@@ -4885,6 +4861,16 @@ begin
  end;
 
 end;
+
+{$ifdef pascalabc}
+type TStringList=class
+  a:array of string;
+  constructor create();
+  begin
+    this.a:=new string[0];
+  end;
+end;
+{$endif}
 
 var VKXMLFileStream:TMemoryStream;
     VKXML:TXML;
