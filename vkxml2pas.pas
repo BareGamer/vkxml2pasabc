@@ -149,7 +149,7 @@ uses SysUtils,Classes,Contnrs;
 // On other platforms, use the default calling convention
 const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef cpuarm}hardfloat;{$else}cdecl;{$endif}{$else}cdecl;{$endif}{$endif}';
 {$else}
-uses vkxml2pasutilsabc; //reimplementation of some utility functions such as assign or some classes
+uses vkxml2pasutilsabc; //reimplementation of some functions, classes, types
 {$endif}
 
       const CommentPadding=80;
@@ -161,7 +161,7 @@ uses vkxml2pasutilsabc; //reimplementation of some utility functions such as ass
   {$if CompilerVersion>=23.0}
    {$undef OldDelphi}
 type qword=uint64;
-     ptruint=vkxml2pasutilsabc.NativeUInt;
+     ptruint=NativeUInt;
      ptrint=NativeInt;
   {$elseif}
    {$define OldDelphi}
