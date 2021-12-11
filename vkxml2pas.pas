@@ -1253,88 +1253,9 @@ end;
 
 {$ifndef pascalabc}
 function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean=false):boolean;
-var StringLength,Position,PositionCounter:longint;
-    NewNode,LastNode,Node:PXMLStringTreeNode;
-    StringChar,NodeChar:ansichar;
-begin
- result:=false;
- StringLength:=length(Content);
- if StringLength>0 then begin
-  LastNode:=nil;
-  Node:=Root;
-  for Position:=1 to StringLength do begin
-   StringChar:=Content[Position];
-   if assigned(Node) then begin
-    NodeChar:=Node^.TheChar;
-    if NodeChar=StringChar then begin
-     LastNode:=Node;
-     Node:=Node^.Next;
-    end else begin
-     while (NodeChar<StringChar) and assigned(Node^.Down) do begin
-      Node:=Node^.Down;
-      NodeChar:=Node^.TheChar;
-     end;
-     if NodeChar=StringChar then begin
-      LastNode:=Node;
-      Node:=Node^.Next;
-     end else begin
-      NewNode:=CreateStringTreeNode(StringChar);
-      if NodeChar<StringChar then begin
-       NewNode^.Down:=Node^.Down;
-       NewNode^.Up:=Node;
-       if assigned(NewNode^.Down) then begin
-        NewNode^.Down^.Up:=NewNode;
-       end;
-       NewNode^.Prevoius:=Node^.Prevoius;
-       Node^.Down:=NewNode;
-      end else if NodeChar>StringChar then begin
-       NewNode^.Down:=Node;
-       NewNode^.Up:=Node^.Up;
-       if assigned(NewNode^.Up) then begin
-        NewNode^.Up^.Down:=NewNode;
-       end;
-       NewNode^.Prevoius:=Node^.Prevoius;
-       if not assigned(NewNode^.Up) then begin
-        if assigned(NewNode^.Prevoius) then begin
-         NewNode^.Prevoius^.Next:=NewNode;
-        end else begin
-         Root:=NewNode;
-        end;
-       end;
-       Node^.Up:=NewNode;
-      end;
-      LastNode:=NewNode;
-      Node:=LastNode^.Next;
-     end;
-    end;
-   end else begin
-    for PositionCounter:=Position to StringLength do begin
-     NewNode:=CreateStringTreeNode(Content[PositionCounter]);
-     if assigned(LastNode) then begin
-      NewNode^.Prevoius:=LastNode;
-      LastNode^.Next:=NewNode;
-      LastNode:=LastNode^.Next;
-     end else begin
-      if not assigned(Root) then begin
-       Root:=NewNode;
-       LastNode:=Root;
-      end;
-     end;
-    end;
-    break;
-   end;
-  end;
-  if assigned(LastNode) then begin
-   if Replace or not LastNode^.DataExist then begin
-    LastNode^.Data:=Data;
-    LastNode^.DataExist:=true;
-    result:=true;
-   end;
-  end;
- end;
-end;
 {$else}
 function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean:=false):boolean;
+{$endif}
 var StringLength,Position,PositionCounter:longint;
     NewNode,LastNode,Node:PXMLStringTreeNode;
     StringChar,NodeChar:ansichar;
@@ -1415,7 +1336,6 @@ begin
   end;
  end;
 end;
-{$endif}
 
 function TXMLStringTree.Delete(Content:ansistring):boolean;
 var StringLength,Position:longint;
@@ -1748,18 +1668,9 @@ end;
 
 {$ifndef pascalabc}
 function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring=''):ansistring;
-var i:longint;
-begin
- for i:=0 to length(Parameter)-1 do begin
-  if Parameter[i].Name=ParameterName then begin
-   result:=Parameter[i].Value;
-   exit;
-  end;
- end;
- result:=bydefault;
-end;
 {$else}
 function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring:=''):ansistring;
+{$endif}
 var i:longint;
 begin
  for i:=0 to length(Parameter)-1 do begin
@@ -1770,7 +1681,6 @@ begin
  end;
  result:=bydefault;
 end;
-{$endif}
 
 function TXMLTag.AddParameter(AParameter:TXMLParameter):boolean;
 var Index:longint;
