@@ -74,9 +74,9 @@ program vkxml2pas;        //this is done with pascalabc in mind as it requires c
   {$define HAS_TYPE_EXTENDED}
   {$define HAS_TYPE_DOUBLE}
   {$define HAS_TYPE_SINGLE}
- {$else}
+ {$elseif}
   {$define pascalabc}
- {$endif}
+ {$ifend}
 {$endif}
 {$ifdef cpu386}
  {$define cpux86}
@@ -151,6 +151,11 @@ const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef
 {$endif}
       const CommentPadding=80;
 
+{$ifdef pascalabc}//doesn't compile the type below without that
+type NativeUInt=longword;
+     NativeInt=longint;
+{$endif}
+
 {$if defined(fpc)}
  {$undef OldDelphi}
 {$elseif not defined(pascalabc)}
@@ -160,13 +165,14 @@ const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef
 type qword=uint64;
      ptruint=NativeUInt;
      ptrint=NativeInt;
-  {$else}
+  {$elseif}
    {$define OldDelphi}
   {$ifend}
  {$elseif}
   {$define OldDelphi}
- {$endif}
-{$endif}
+ {$ifend}
+{$ifend}
+
 {$ifdef OldDelphi}
 type qword=int64;
 {$ifdef cpu64}
@@ -177,20 +183,12 @@ type qword=int64;
      ptrint=longint;
 {$endif}
 {$endif}
-//pascalabc gets compiled to il which gets rid of the size issue and it will just emulate it on 32-bit systems if needed
-{$ifdef pascalabc}
-     type qword=int64;
-     ptruint=qword;
-     ptrint=int64;
-{$endif}
 
 {$ifdef pascalabc}
  type ansistring=string;
  type ansichar=char;
  type pansichar=^ansichar;
-{$endif}
 
-{$ifdef pascalabc}
 procedure SetString(var s:string;buffer:pchar;length:integer);
 begin
   if buffer<>nil then
@@ -200,6 +198,11 @@ begin
     //var ps:pointer:=@s;
     //ps:=@s1;
   end;
+end;
+
+function Assigned(p:pointer):boolean;
+begin
+  result:=p<>nil;
 end;
 {$endif}
 
@@ -276,7 +279,7 @@ type TXMLClass=class
        destructor Destroy; {$ifndef pascalabc}override;{$endif}                 //here pabc claims the destructor isn't overriden so i ifndef'ed
      end;
 
-const MaxListSize=2147483647 div SizeOf(TXMLClass);
+const MaxListSize=2147483647 div {$ifndef pascalabc}SizeOf(TXMLClass){$else}8{$endif};
 
 type PEngineListClasses=^TXMLClasses;
      TXMLClasses=array[0..MaxListSize-1] of TXMLClass;
@@ -367,7 +370,11 @@ type PEngineListClasses=^TXMLClasses;
        procedure DumpList;
        procedure AppendTo(DestStringTree:TXMLStringTree);
        procedure Optimize(DestStringTree:TXMLStringTree);
-       function Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean{$ifdef pascalabc}:{$endif}=false):boolean;
+       {$ifndef pascalabc}
+       function Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean=false):boolean;
+       {$else}
+       function Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean:=false):boolean;
+       {$endif}
        function Delete(Content:ansistring):boolean;
        function Find(Content:ansistring;var Data:TXMLStringTreeData):boolean;
        function FindEx(Content:ansistring;var Data:TXMLStringTreeData;var Len:longint):boolean;
@@ -441,7 +448,11 @@ type PEngineListClasses=^TXMLClasses;
        procedure Clear; override;
        procedure Assign(From:TXMLItem); override;
        function FindParameter(ParameterName:ansistring):TXMLParameter;
-       function GetParameter(ParameterName:ansistring;bydefault:ansistring{$ifdef pascalabc}:{$endif}=''):ansistring;  //default is reserved in pascalabc, replaced with bydefault
+       {$ifndef pascalabc}
+       function GetParameter(ParameterName:ansistring;bydefault:ansistring=''):ansistring;  //default is reserved in pascalabc, replaced with bydefault
+       {$else}
+       function GetParameter(ParameterName:ansistring;bydefault:ansistring:=''):ansistring;  //default is reserved in pascalabc, replaced with bydefault
+       {$endif}
        function AddParameter(AParameter:TXMLParameter):boolean; overload;
        function AddParameter(Name:ansistring;Value:TXMLString):boolean; overload;
        function RemoveParameter(AParameter:TXMLParameter):boolean; overload;
@@ -505,11 +516,19 @@ type PEngineListClasses=^TXMLClasses;
        procedure Assign(From:TXML);
        function Parse(Stream:TStream):boolean;
        function Read(Stream:TStream):boolean;
-       function Write(Stream:TStream;IdentSize:longint{$ifdef pascalabc}:{$endif}=2):boolean;
+       {$ifndef pascalabc}
+       function Write(Stream:TStream;IdentSize:longint=2):boolean;
+       {$else}
+       function Write(Stream:TStream;IdentSize:longint:=2):boolean;
+       {$endif}
        property Text:ansistring read ReadXMLText write WriteXMLText;
      end;
 
-function NextPowerOfTwo(Value:longint;const MinThreshold:longint{$ifdef pascalabc}:{$endif}=0):longint;
+{$ifndef pascalabc}
+function NextPowerOfTwo(Value:longint;const MinThreshold:longint=0):longint;
+{$else}
+function NextPowerOfTwo(Value:longint;const MinThreshold:longint:=0):longint;
+{$endif}
 begin
  result:=(Value or MinThreshold)-1;
  result:=result or (result shr 1);
@@ -585,7 +604,11 @@ begin
  EntityInitialized:=false;
 end;
 
-function ConvertToEntities(AString:TXMLString;IdentLevel:longint{$ifdef pascalabc}:{$endif}=0):ansistring;
+{$ifndef pascalabc}
+function ConvertToEntities(AString:TXMLString;IdentLevel:longint=0):ansistring;
+{$else}
+function ConvertToEntities(AString:TXMLString;IdentLevel:longint:=0):ansistring;
+{$endif}
 var Counter,IdentCounter:longint;
     c:TXMLChar;
 begin
@@ -1228,7 +1251,8 @@ begin
  end;
 end;
 
-function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean{$ifdef pascalabc}:{$endif}=false):boolean;
+{$ifndef pascalabc}
+function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean=false):boolean;
 var StringLength,Position,PositionCounter:longint;
     NewNode,LastNode,Node:PXMLStringTreeNode;
     StringChar,NodeChar:ansichar;
@@ -1309,6 +1333,89 @@ begin
   end;
  end;
 end;
+{$else}
+function TXMLStringTree.Add(Content:ansistring;Data:TXMLStringTreeData;Replace:boolean:=false):boolean;
+var StringLength,Position,PositionCounter:longint;
+    NewNode,LastNode,Node:PXMLStringTreeNode;
+    StringChar,NodeChar:ansichar;
+begin
+ result:=false;
+ StringLength:=length(Content);
+ if StringLength>0 then begin
+  LastNode:=nil;
+  Node:=Root;
+  for Position:=1 to StringLength do begin
+   StringChar:=Content[Position];
+   if assigned(Node) then begin
+    NodeChar:=Node^.TheChar;
+    if NodeChar=StringChar then begin
+     LastNode:=Node;
+     Node:=Node^.Next;
+    end else begin
+     while (NodeChar<StringChar) and assigned(Node^.Down) do begin
+      Node:=Node^.Down;
+      NodeChar:=Node^.TheChar;
+     end;
+     if NodeChar=StringChar then begin
+      LastNode:=Node;
+      Node:=Node^.Next;
+     end else begin
+      NewNode:=CreateStringTreeNode(StringChar);
+      if NodeChar<StringChar then begin
+       NewNode^.Down:=Node^.Down;
+       NewNode^.Up:=Node;
+       if assigned(NewNode^.Down) then begin
+        NewNode^.Down^.Up:=NewNode;
+       end;
+       NewNode^.Prevoius:=Node^.Prevoius;
+       Node^.Down:=NewNode;
+      end else if NodeChar>StringChar then begin
+       NewNode^.Down:=Node;
+       NewNode^.Up:=Node^.Up;
+       if assigned(NewNode^.Up) then begin
+        NewNode^.Up^.Down:=NewNode;
+       end;
+       NewNode^.Prevoius:=Node^.Prevoius;
+       if not assigned(NewNode^.Up) then begin
+        if assigned(NewNode^.Prevoius) then begin
+         NewNode^.Prevoius^.Next:=NewNode;
+        end else begin
+         Root:=NewNode;
+        end;
+       end;
+       Node^.Up:=NewNode;
+      end;
+      LastNode:=NewNode;
+      Node:=LastNode^.Next;
+     end;
+    end;
+   end else begin
+    for PositionCounter:=Position to StringLength do begin
+     NewNode:=CreateStringTreeNode(Content[PositionCounter]);
+     if assigned(LastNode) then begin
+      NewNode^.Prevoius:=LastNode;
+      LastNode^.Next:=NewNode;
+      LastNode:=LastNode^.Next;
+     end else begin
+      if not assigned(Root) then begin
+       Root:=NewNode;
+       LastNode:=Root;
+      end;
+     end;
+    end;
+    break;
+   end;
+  end;
+  if assigned(LastNode) then begin
+   if Replace or not LastNode^.DataExist then begin
+    LastNode^.Data:=Data;
+    LastNode^.DataExist:=true;
+    result:=true;
+   end;
+  end;
+ end;
+end;
+{$endif}
 
 function TXMLStringTree.Delete(Content:ansistring):boolean;
 var StringLength,Position:longint;
@@ -1639,7 +1746,8 @@ begin
  result:=nil;
 end;
 
-function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring{$ifdef pascalabc}:{$endif}=''):ansistring;
+{$ifndef pascalabc}
+function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring=''):ansistring;
 var i:longint;
 begin
  for i:=0 to length(Parameter)-1 do begin
@@ -1650,6 +1758,19 @@ begin
  end;
  result:=bydefault;
 end;
+{$else}
+function TXMLTag.GetParameter(ParameterName:ansistring;bydefault:ansistring:=''):ansistring;
+var i:longint;
+begin
+ for i:=0 to length(Parameter)-1 do begin
+  if Parameter[i].Name=ParameterName then begin
+   result:=Parameter[i].Value;
+   exit;
+  end;
+ end;
+ result:=bydefault;
+end;
+{$endif}
 
 function TXMLTag.AddParameter(AParameter:TXMLParameter):boolean;
 var Index:longint;
@@ -2544,7 +2665,11 @@ begin
  result:=Parse(Stream);
 end;
 
-function TXML.Write(Stream:TStream;IdentSize:longint{$ifdef pascalabc}:{$endif}=2):boolean;
+{$ifndef pascalabc}
+function TXML.Write(Stream:TStream;IdentSize:longint=2):boolean;
+{$else}
+function TXML.Write(Stream:TStream;IdentSize:longint:=2):boolean;
+{$endif}
 var IdentLevel:longint;
     Errors:boolean;
  procedure Process(Item:TXMLItem;DoIndent:boolean);
@@ -2910,7 +3035,11 @@ var Comment:ansistring;
     AllCommandClassDefinitions:TStringList;
     AllCommandClassImplementations:TStringList;
 
-function TranslateType(Type_:ansistring;const Ptr:longint{$ifdef pascalabc}:{$endif}=0):ansistring;
+{$ifndef pascalabc}
+function TranslateType(Type_:ansistring;const Ptr:longint=0):ansistring;
+{$else}
+function TranslateType(Type_:ansistring;const Ptr:longint:=0):ansistring;
+{$endif}
 begin
  case Ptr of
   1:begin
@@ -3442,7 +3571,7 @@ type PTypeDefinitionKind=^TTypeDefinitionKind;
      TTypeDefinitionMembers=array of TTypeDefinitionMember;
      PTypeDefinition=^TTypeDefinition;
      TTypeDefinition=record
-      {$if defined(pascalabc)}
+     {$ifdef pascalabc}  
       Kind:(tdkUNKNOWN,tdkSTRUCT,tdkUNION,tdkFUNCPOINTER,tdkALIAS);  //"nested records can't use names fron non-global contexts"  (pascalabc)
       Name:ansistring;
       Comment:ansistring;
@@ -3465,7 +3594,8 @@ type PTypeDefinitionKind=^TTypeDefinitionKind;
       Ptr:longint;
       ValidityStringList:TStringList;
      end;
-      {$else}
+     {$else}
+     //TTypeDefinition=record
       Kind:TTypeDefinitionKind;
       Name:ansistring;
       Comment:ansistring;
@@ -3477,7 +3607,7 @@ type PTypeDefinitionKind=^TTypeDefinitionKind;
       Ptr:longint;
       ValidityStringList:TStringList;
      end;
-      {$endif}
+     {$endif}
      TTypeDefinitions=array of TTypeDefinition;
      TPTypeDefinitions=array of PTypeDefinition;
 var i,j,k,ArraySize,CountTypeDefinitions,VersionVariant,VersionMajor,VersionMinor,VersionPatch:longint;
@@ -5032,7 +5162,7 @@ begin
    OutputPAS.Add('     SysUtils;');
    OutputPAS.Add('{$endif}');
    OutputPAS.Add('');
-   OutputPAS.Add('const VK_DEFAULT_LIB_NAME={$if defined(Windows) or defined(pascalabc)}''vulkan-1.dll''{$else}{$ifdef Android}''libvulkan.so''{$else}{$ifdef Unix}''libvulkan.so.1''{$else}''libvulkan''{$endif}{$endif}{$endif};');
+   OutputPAS.Add('const VK_DEFAULT_LIB_NAME={$ifdef Windows}''vulkan-1.dll''{$else}{$ifdef Android}''libvulkan.so''{$else}{$ifdef Unix}''libvulkan.so.1''{$else}''libvulkan''{$endif}{$endif}{$endif};');
    OutputPAS.Add('');
    OutputPAS.Add('type PPVkInt8=^PVkInt8;');
    OutputPAS.Add('     PVkInt8=^TVkInt8;');
@@ -5551,6 +5681,7 @@ begin
 
  finally
   FinalizeEntites;
+  {$ifndef pascalabc}
   VendorIDList.Free;
   TagList.Free;
   ExtensionsOrFeatures.Free;
@@ -5574,6 +5705,7 @@ begin
   AllCommandClassDefinitions.Free;
   AllCommandClassImplementations.Free;
   AllDeviceCommands.Free;
+  {$endif}
  end;
 
  readln;
