@@ -19,6 +19,10 @@ type TStringList=class
   end;
 end;
 
+type TStream=class
+  
+end;
+
 procedure SetString(s:string;buffer:pchar;length:integer);
 begin
   if buffer<>nil then
@@ -26,11 +30,6 @@ begin
     var s1:string:=new string(buffer,0,length);
     s:=s1;
   end;
-end;
-
-function Assigned(p:pointer):boolean;
-begin
-  result:=p<>nil;
 end;
 
 begin

@@ -149,27 +149,30 @@ uses SysUtils,Classes,Contnrs;
 // On other platforms, use the default calling convention
 const CallingConventions='{$ifdef Windows}stdcall;{$else}{$ifdef Android}{$ifdef cpuarm}hardfloat;{$else}cdecl;{$endif}{$else}cdecl;{$endif}{$endif}';
 {$else}
-uses vkxml2pasutilsabc; //reimplementation of some functions, classes, types
+uses vkxml2pasutilsabc;            //reimplementation of some functions, classes, types
+//{$reference vkxml2pasutilsabc.dll} //imitate functions that are too hard
 {$endif}
 
       const CommentPadding=80;
 
+{$ifndef pascalabc}              //pabc doesn't have {$if}
 {$if defined(fpc)}
  {$undef OldDelphi}
-{$elseif not defined(pascalabc)}
+{$elseif}
  {$if defined(conditionalexpressions)}
   {$if CompilerVersion>=23.0}
    {$undef OldDelphi}
 type qword=uint64;
      ptruint=NativeUInt;
      ptrint=NativeInt;
-  {$elseif}
+  {$elseif}                     //pabc skips {$elseif} and allows you to compile
    {$define OldDelphi}
   {$ifend}
  {$elseif}
   {$define OldDelphi}
  {$ifend}
 {$ifend}
+{$endif}
 
 {$ifdef OldDelphi}
 type qword=int64;
@@ -180,6 +183,12 @@ type qword=int64;
      ptruint=longword;
      ptrint=longint;
 {$endif}
+{$endif}
+
+{$ifdef pascalabc}
+type qword=uint64;
+     ptruint=NativeUInt;
+     ptrint=NativeInt;
 {$endif}
 
 function UTF32CharToUTF8(CharValue:longword):ansistring;
@@ -270,8 +279,8 @@ type PEngineListClasses=^TXMLClasses;
       public
        ClearWithContentDestroying:boolean;
        CapacityMinimium:longint;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Clear;
        procedure ClearNoFree;
        procedure ClearWithFree;
@@ -306,8 +315,8 @@ type PEngineListClasses=^TXMLClasses;
       public
        ClearWithContentDestroying:boolean;
        First,Last:TXMLClass;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Clear;
        procedure ClearNoFree;
        procedure ClearWithFree;
@@ -340,7 +349,7 @@ type PEngineListClasses=^TXMLClasses;
        procedure DestroyStringTreeNode(Node:PXMLStringTreeNode);
       public
        constructor Create;
-       destructor Destroy; override;
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Clear;
        procedure DumpTree;
        procedure DumpList;
@@ -363,8 +372,8 @@ type PEngineListClasses=^TXMLClasses;
       public
        Name:ansistring;
        Value:TXMLString;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLParameter); virtual;
      end;
 
@@ -375,8 +384,8 @@ type PEngineListClasses=^TXMLClasses;
      TXMLItem=class(TXMLClass)
       public
        Items:TXMLItemList;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Clear; virtual;
        procedure Add(Item:TXMLItem);
        procedure Assign(From:TXMLItem); virtual;
@@ -388,19 +397,19 @@ type PEngineListClasses=^TXMLClasses;
        function GetItem(Index:longint):TXMLItem;
        procedure SetItem(Index:longint;Value:TXMLItem);
       public
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        function NewClass:TXMLItem;
        function FindTag(const TagName:ansistring):TXMLTag;
-       property Item[Index:longint]:TXMLItem read GetItem write SetItem; default;
+       property Item[Index:longint]:TXMLItem read GetItem write SetItem; {$ifndef pascalabc}default;{$endif}
        property Items[Index:longint]:TXMLItem read GetItem write SetItem;
      end;
 
      TXMLText=class(TXMLItem)
       public
        Text:TXMLString;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -408,8 +417,8 @@ type PEngineListClasses=^TXMLClasses;
      TXMLCommentTag=class(TXMLItem)
       public
        Text:ansistring;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -419,8 +428,8 @@ type PEngineListClasses=^TXMLClasses;
        Name:ansistring;
        Parameter:array of TXMLParameter;
        IsAloneTag:boolean;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Clear; override;
        procedure Assign(From:TXMLItem); override;
        function FindParameter(ParameterName:ansistring):TXMLParameter;
@@ -437,16 +446,16 @@ type PEngineListClasses=^TXMLClasses;
 
      TXMLProcessTag=class(TXMLTag)
       public
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
      end;
 
      TXMLScriptTag=class(TXMLItem)
       public
        Text:ansistring;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -454,8 +463,8 @@ type PEngineListClasses=^TXMLClasses;
      TXMLCDataTag=class(TXMLItem)
       public
        Text:ansistring;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -463,8 +472,8 @@ type PEngineListClasses=^TXMLClasses;
      TXMLDOCTYPETag=class(TXMLItem)
       public
        Text:ansistring;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -472,8 +481,8 @@ type PEngineListClasses=^TXMLClasses;
      TXMLExtraTag=class(TXMLItem)
       public
        Text:ansistring;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXMLItem); override;
        procedure SetText(AText:ansistring);
      end;
@@ -487,8 +496,8 @@ type PEngineListClasses=^TXMLClasses;
        AutomaticAloneTagDetection:boolean;
        FormatIndent:boolean;
        FormatIndentText:boolean;
-       constructor Create; override;
-       destructor Destroy; override;
+       constructor Create; {$ifndef pascalabc}override;{$endif}
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
        procedure Assign(From:TXML);
        function Parse(Stream:TStream):boolean;
        function Read(Stream:TStream):boolean;
@@ -503,7 +512,7 @@ type PEngineListClasses=^TXMLClasses;
 {$ifndef pascalabc}
 function NextPowerOfTwo(Value:longint;const MinThreshold:longint=0):longint;
 {$else}
-function NextPowerOfTwo(Value:longint;const MinThreshold:longint:=0):longint;
+function NextPowerOfTwo(Value:longint;MinThreshold:longint:=0):longint;
 {$endif}
 begin
  result:=(Value or MinThreshold)-1;
@@ -552,7 +561,7 @@ type TEntitiesCharLookUpItem=record
 var EntitiesCharLookUp:TEntitiesCharLookUpTable;
     EntityStringTree:TXMLStringTree;
 
-const EntityInitialized:boolean=false;
+{$ifndef pascalabc}const{$else}var{$endif} EntityInitialized:boolean=false;
 
 procedure InitializeEntites;
 var EntityCounter:longint;
@@ -2871,7 +2880,7 @@ type TVendorID=class
        Types:TObjectList;
        Commands:TObjectList;
        constructor Create;
-       destructor Destroy; override;
+       destructor Destroy; {$ifndef pascalabc}override;{$endif}
      end;
 
 constructor TExtensionOrFeature.Create;
@@ -5302,7 +5311,7 @@ begin
    OutputPAS.Add('      public');
    OutputPAS.Add('       constructor Create; reintroduce; overload;');
    OutputPAS.Add('       constructor Create(const AVulkanCommands:TVulkanCommands); reintroduce; overload;');
-   OutputPAS.Add('       destructor Destroy; override;');
+   OutputPAS.Add('       destructor Destroy; {$ifndef pascalabc}override;{$endif}');
    OutputPAS.AddStrings(AllCommandClassDefinitions);
    OutputPAS.Add('       property Commands:TVulkanCommands read fCommands;');
    OutputPAS.Add('     end;');
@@ -5606,4 +5615,3 @@ begin
 
  readln;
 end.
-
